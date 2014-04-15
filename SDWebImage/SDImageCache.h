@@ -48,6 +48,16 @@ typedef void(^SDWebImageQueryCompletedBlock)(UIImage *image, SDImageCacheType ca
 @property (assign, nonatomic) NSUInteger maxCacheSize;
 
 /**
+ * The search path directory to store cached images on disk. Default is NSCachesDirectory.
+ */
+@property (assign, nonatomic) NSSearchPathDirectory searchPathDirectory;
+
+/**
+ * Default is NO.
+ */
+@property (assign, nonatomic) BOOL addSkipBackupFileAttribute;
+
+/**
  * Returns global shared cache instance
  *
  * @return SDImageCache global instance

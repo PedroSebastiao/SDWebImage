@@ -10,6 +10,7 @@
 #import "SDWebImageDecoder.h"
 #import "UIImage+MultiFormat.h"
 #import <CommonCrypto/CommonDigest.h>
+#include <sys/xattr.h>
 
 static const NSInteger kDefaultCacheMaxCacheAge = 60 * 60 * 24 * 7; // 1 week
 // PNG signature bytes and data (below)
@@ -185,7 +186,13 @@ BOOL ImageDataHasPNGPreffix(NSData *data) {
                     [_fileManager createDirectoryAtPath:_diskCachePath withIntermediateDirectories:YES attributes:nil error:NULL];
                 }
 
-                [_fileManager createFileAtPath:[self defaultCachePathForKey:key] contents:data attributes:nil];
+                NSString *filePath = [self defaultCachePathForKey:key];
+                BOOL success =
+                [_fileManager createFileAtPath:filePath contents:data attributes:nil];
+                
+                if (success && self.addSkipBackupFileAttribute) {
+                    [self addSkipBackupAttributeToItemAtURL:[NSURL fileURLWithPath:filePath]];
+                }
             }
         });
     }
@@ -496,5 +503,58 @@ BOOL ImageDataHasPNGPreffix(NSData *data) {
         }
     });
 }
+
+- (BOOL)addSkipBackupAttributeToItemAtURL:(NSURL *)URL
+{
+    if (![[NSFileManager defaultManager] fileExistsAtPath: [URL path]]) {
+        return NO;
+    }
+    
+    
+    NSError *error = nil;
+    BOOL success = NO;
+    
+    const char* filePath = [URL fileSystemRepresentation];
+    const char* attrName = "com.apple.MobileBackup";
+    void *check = (void *)&NSURLIsExcludedFromBackupKey;
+    if (check) {
+        
+        
+        // First try and remove the extended attribute if it is present
+        ssize_t result = getxattr(filePath, attrName, NULL, sizeof(u_int8_t), 0, 0);
+        if (result != -1) {
+            // The attribute exists, we need to remove it
+            int removeResult = removexattr(filePath, attrName, 0);
+            if (removeResult == 0) {
+                NSLog(@"Removed extended attribute on item at path %@", URL);
+            }
+        }
+        
+        success = [URL setResourceValue: [NSNumber numberWithBool: YES]
+                                 forKey: NSURLIsExcludedFromBackupKey error: &error];
+        
+    } else {
+        // iOS 5.0.1 and lower
+        u_int8_t attrValue = 1;
+        int result = setxattr(filePath, attrName, &attrValue, sizeof(attrValue), 0, 0);
+        success = (result == 0);
+    }
+    
+    if(!success){
+        NSLog(@"Error excluding %@ from backup %@", [URL lastPathComponent], error);
+    }
+    
+    return success;
+}
+
+
+- (void)setSearchPathDirectory:(NSSearchPathDirectory)searchPathDirectory
+{
+    _searchPathDirectory = searchPathDirectory;
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    _diskCachePath = [paths[0] stringByAppendingPathComponent:_memCache.name];
+}
+
 
 @end
