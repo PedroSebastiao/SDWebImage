@@ -202,4 +202,9 @@ SDWebImageManager *manager = [SDWebImageManager sharedManager];
  */
 - (BOOL)diskImageExistsForURL:(NSURL *)url;
 
+/**
+ * Returns cache key for the URL
+ */
+- (NSString *)cacheKeyForURL:(NSURL *)url;
+
 @end
