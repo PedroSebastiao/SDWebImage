@@ -130,6 +130,12 @@
 }
 
 - (void)cancelPrefetching {
+    
+    if (self.completionBlock) {
+        self.completionBlock(self.finishedCount, [self.prefetchURLs count] - self.finishedCount + self.skippedCount);
+        self.completionBlock = nil;
+    }
+    
     self.prefetchURLs = nil;
     self.skippedCount = 0;
     self.requestedCount = 0;
