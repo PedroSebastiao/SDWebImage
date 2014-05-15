@@ -514,7 +514,7 @@ BOOL ImageDataHasPNGPreffix(NSData *data) {
     NSError *error = nil;
     BOOL success = NO;
     
-    const char* filePath = [URL fileSystemRepresentation];
+    const char* filePath = [[URL path] fileSystemRepresentation];
     const char* attrName = "com.apple.MobileBackup";
     void *check = (void *)&NSURLIsExcludedFromBackupKey;
     if (check) {
