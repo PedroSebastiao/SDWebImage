@@ -552,7 +552,7 @@ BOOL ImageDataHasPNGPreffix(NSData *data) {
 {
     _searchPathDirectory = searchPathDirectory;
     
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(searchPathDirectory, NSUserDomainMask, YES);
     _diskCachePath = [paths[0] stringByAppendingPathComponent:_memCache.name];
 }
 
