@@ -180,6 +180,11 @@ typedef void(^SDWebImageQueryCompletedBlock)(UIImage *image, SDImageCacheType ca
 - (NSUInteger)getSize;
 
 /**
+ * Get the size used by the disk cache for the given key
+ */
+- (NSUInteger)getSizeForKey:(NSString *)key;
+
+/**
  * Get the number of images in the disk cache
  */
 - (int)getDiskCount;

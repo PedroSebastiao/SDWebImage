@@ -466,6 +466,37 @@ BOOL ImageDataHasPNGPreffix(NSData *data) {
     return size;
 }
 
+- (NSUInteger)getSizeForKey:(NSString *)key {
+    __block NSUInteger size = 0;
+    
+    dispatch_sync(self.ioQueue, ^{
+        
+        NSDictionary *attrs = nil;
+        
+        unsigned long long bytes = 0;
+        
+        NSString *defaultPath = [self defaultCachePathForKey:key];
+        attrs = [_fileManager attributesOfItemAtPath:defaultPath error:nil];
+        if (attrs) {
+            bytes = [attrs fileSize];
+        } else {
+            for (NSString *path in self.customPaths) {
+                NSString *filePath = [self cachePathForKey:key inPath:path];
+                attrs = [_fileManager attributesOfItemAtPath:filePath error:nil];
+                if (attrs) {
+                    bytes = [attrs fileSize];
+                    break;
+                }
+            }
+        }
+        
+        size = (NSUInteger)bytes;
+        
+    });
+    
+    return size;
+}
+
 - (int)getDiskCount {
     __block int count = 0;
     dispatch_sync(self.ioQueue, ^{
